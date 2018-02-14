@@ -1,6 +1,11 @@
-// Policy Based Access Control Engine
+import * as mm from "micromatch";
+import * as debug from "debug";
+
+const log: debug.IDebugger = debug("wahn:log");
+const warn: debug.IDebugger = debug("wahn:warn");
 
 /**
+ * Policy Based Access Control Engine
  * Define a policy as follows:
  *
  * {
@@ -21,7 +26,6 @@
  *  ]
  * }
  */
-
 class Wahn {
     // Policies can be added at runtime only
     private policies: Policy[];
@@ -37,8 +41,46 @@ class Wahn {
         return this.policies;
     }
 
-    public evaluateAccess(): boolean | AuthorizationError {
-        return true;
+    /**
+     * Return all polices attached to the roles provided
+     * @param roles
+     */
+    private getPolicesForRole(roles: string[]): Policy[] {
+        const policies: Policy[] = this.policies.filter((policy: Policy) => {
+            const matchedPolicy: boolean = mm.some(roles, policy.roles, {
+                nocase: true,
+            });
+            if (matchedPolicy) {
+                return policy;
+            }
+        });
+        return policies;
+    }
+
+    /**
+     *
+     * @param options
+     */
+    public evaluateAccess({
+        context,
+        resource,
+    }: WahnEvaluationOptions): boolean | AuthorizationError {
+        console.log({ context, resource });
+        try {
+            // First get all the polices applicable to this user
+            const policies: Policy[] = this.getPolicesForRole(
+                context.user.roles,
+            );
+            // Second, check if any of the policies have the resource
+            // const resourceIsValid: boolean = mm.isMatch(resource, policies.resource)
+            const matchedPolicies: Policy[] = policies.filter(
+                (policy: Policy) => mm.some(resource, policy.resources),
+            );
+            console.log({ policies, matchedPolicies });
+            return true;
+        } catch (AuthorizationError) {
+            throw AuthorizationError;
+        }
     }
 }
 
@@ -48,14 +90,20 @@ type WahnConstructorOptions = {
     policies: Policy[];
 };
 
+type WahnEvaluationOptions = {
+    context: PolicyContext;
+    resource: string;
+};
+
 type ContextUser = {
     id: string;
     ip?: string;
+    // TODO: Filter wildcards from roles
     roles: string[];
 };
 
 type PolicyContext = {
-    user?: ContextUser;
+    user: ContextUser;
     [key: string]: any;
 };
 
@@ -80,7 +128,8 @@ type Policy = {
     resources: string[];
     action: PolicyAction;
     condition?: [PolicyCondition];
-    roles?: string[];
+    // Roles can have a glob
+    roles: string[];
 };
 
 // [ Errors ]---------------------------------------------------------------------------------------
