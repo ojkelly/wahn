@@ -1,9 +1,9 @@
 import test from "ava";
-import { Wahn, Policy, PolicyAction, PolicyContext } from "./index";
+import { Wahn, Policy, PolicyAction, RequestContext } from "./index";
 
 // [ Simple Policy ]--------------------------------------------------------------------------------
 const simpleRoles: string[] = ["user", "simple user"];
-const context: PolicyContext = {
+const context: RequestContext = {
     user: {
         id: "simpleUserId",
         roles: simpleRoles,

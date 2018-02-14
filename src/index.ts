@@ -1,6 +1,7 @@
 import * as mm from "micromatch";
 import * as debug from "debug";
 
+const info: debug.IDebugger = debug("wahn:info");
 const log: debug.IDebugger = debug("wahn:log");
 const warn: debug.IDebugger = debug("wahn:warn");
 
@@ -64,22 +65,50 @@ class Wahn {
     public evaluateAccess({
         context,
         resource,
-    }: WahnEvaluationOptions): boolean | AuthorizationError {
-        console.log({ context, resource });
+    }: WahnEvaluationOptions): boolean {
         try {
-            // First get all the polices applicable to this user
+            // 1. Outcome defaults to: `deny`.
+            let outcome: boolean = false;
+
+            console.log({ context, resource });
+
+            // 2. Find all applicable policies.
             const policies: Policy[] = this.getPolicesForRole(
                 context.user.roles,
             );
-            // Second, check if any of the policies have the resource
-            // const resourceIsValid: boolean = mm.isMatch(resource, policies.resource)
+
+            // Check if any of the policies have the resource
             const matchedPolicies: Policy[] = policies.filter(
                 (policy: Policy) => mm.some(resource, policy.resources),
             );
+
+            // 3. Evaluate all applicable polices.
             console.log({ policies, matchedPolicies });
-            return true;
-        } catch (AuthorizationError) {
-            throw AuthorizationError;
+
+            // a. If no policies are found: `outcome=deny`
+            if (matchedPolicies.length === 0) {
+                throw new EvaluationDenied();
+            }
+
+            policies.forEach((policy: Policy) => {
+                // 4. Is there an explict `deny` for the `resource`
+                if (policy.action === PolicyAction.Deny) {
+                    // a. If`yes`then`outcome=deny`and exit evaluation b. If`no` then continue.
+                    throw new EvaluationDenied();
+                }
+
+                // 5. Is there an `allow`?
+                if (policy.action === PolicyAction.Allow) {
+                    // a. If `yes` then `outcome=allow` and exit evaluation
+                    outcome = true;
+                }
+            });
+            // b. If `no` then continue.
+
+            // 6. No `allow` found: `outcome=deny`
+            return outcome;
+        } catch (EvaluationDenied) {
+            return false;
         }
     }
 }
@@ -91,7 +120,7 @@ type WahnConstructorOptions = {
 };
 
 type WahnEvaluationOptions = {
-    context: PolicyContext;
+    context: RequestContext;
     resource: string;
 };
 
@@ -102,14 +131,14 @@ type ContextUser = {
     roles: string[];
 };
 
-type PolicyContext = {
+type RequestContext = {
     user: ContextUser;
     [key: string]: any;
 };
 
 enum PolicyAction {
-    Allow,
-    Deny,
+    Allow = "Allow",
+    Deny = "Deny",
 }
 
 enum PolicyOperator {
@@ -136,6 +165,7 @@ type Policy = {
 
 interface EvalError extends Error {}
 interface AuthorizationError extends Error {}
+class EvaluationDenied extends Error {}
 
 // [ Export ]---------------------------------------------------------------------------------------
 
@@ -144,6 +174,6 @@ export {
     Policy,
     PolicyAction,
     PolicyCondition,
-    PolicyContext,
+    RequestContext,
     PolicyOperator,
 };
