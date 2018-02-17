@@ -78,9 +78,8 @@ You can view the `Policy` type detailed type information, below is the plain JSO
     conditions: [
       {
         // A dot path to the value on the context object
-        field: "userId",
+        field: "${user.id}",
         operator: "match", // or "notMatch"
-        object: "resource",
         value: "user.id",
 
       }
@@ -114,3 +113,17 @@ You can view the `Policy` type detailed type information, below is the plain JSO
    a. If `yes` then `outcome=allow` and exit evaluation
    b. If `no` then continue.
 6. No `allow` found: `outcome=deny`
+
+## Conditions
+
+Conditions provide a powerful way to refine access on a Policy. `wahn` makes no assumptions about
+your implementation, and so the implementation of conditions is partially dependent on your impelmenation.
+
+A condition scopes a Policy to values you provide in the context object.
+
+When you define a `Condition` there are 3 parameters:
+
+* `field`: a dot path to the key on your `context` object.
+* `expected`: the value you expect to see, prefix it with `context::` followed by a dot path to match to another
+  value on the context object
+* `operator`: `match`, `notMatch`, `lessThan`, `greaterThan`

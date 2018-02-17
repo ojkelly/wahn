@@ -13,7 +13,7 @@ import {
 
 // // [ Policy With Conditions ]-----------------------------------------------------------------------
 
-test("Evaluate a policy with condition of IP on request", async t => {
+test("Evaluate a policy with condition of IP on request where IP is stored on Policy (ALLOW)", async t => {
     // Setup some initial values for this policy
     const allowedIp: string = faker.internet.ip();
     const roles: string[] = [faker.name.jobTitle(), faker.name.jobTitle()];
@@ -29,12 +29,18 @@ test("Evaluate a policy with condition of IP on request", async t => {
     const resource: string = `${faker.hacker.noun()}::${faker.hacker.noun()}`;
     const action: string = faker.hacker.verb();
 
+    const condition: PolicyCondition = {
+        field: "request.ip",
+        expected: allowedIp,
+        operator: PolicyOperator.match,
+    };
     // Assemble our policy
     const policy: Policy = {
         id: faker.random.uuid(),
         resources: [resource],
         actions: [action],
         effect: PolicyEffect.Allow,
+        conditions: [condition],
         roles: roles,
     };
 
@@ -56,6 +62,53 @@ test("Evaluate a policy with condition of IP on request", async t => {
         wahn.evaluateAccess({ context, resource, action }),
         "Failed to give access",
     );
+});
+
+test.skip("Evaluate a policy with condition of IP on request where IP is stored on Policy (DENY)", async t => {
+    // Setup some initial values for this policy
+    const allowedIp: string = faker.internet.ip();
+    const roles: string[] = [faker.name.jobTitle(), faker.name.jobTitle()];
+    const context: RequestContext = {
+        user: {
+            id: faker.random.uuid(),
+            roles: roles,
+        },
+        request: {
+            ip: allowedIp,
+        },
+    };
+    const resource: string = `${faker.hacker.noun()}::${faker.hacker.noun()}`;
+    const action: string = faker.hacker.verb();
+
+    const condition: PolicyCondition = {
+        field: "${request.ip}",
+        expected: allowedIp,
+        operator: PolicyOperator.match,
+    };
+    // Assemble our policy
+    const policy: Policy = {
+        id: faker.random.uuid(),
+        resources: [resource],
+        actions: [action],
+        effect: PolicyEffect.Allow,
+        conditions: [condition],
+        roles: roles,
+    };
+
+    // Add in our logging callback
+    let logCallbackResult: LoggingCallbackLog | undefined = undefined;
+    const loggingCallback: LoggingCallback = (
+        log: LoggingCallbackLog,
+    ): void => {
+        logCallbackResult = log;
+    };
+
+    // Create a new wahn
+    const wahn: Wahn = new Wahn({
+        policies: [policy],
+        loggingCallback,
+    });
+
     t.false(
         wahn.evaluateAccess({
             context,

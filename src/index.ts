@@ -140,14 +140,16 @@ enum PolicyEffect {
 enum PolicyOperator {
     match = "match",
     notMatch = "notMatch",
+    lessThan = "lessThan",
+    greaterThan = "greaterThan",
 }
 
 type PolicyCondition = {
-    // A dot path to the value on the object
+    // A dot path to the value on context
     field: string;
 
     // Expected value
-    expected: string;
+    expected: string | string[];
 
     operator: PolicyOperator;
 };
@@ -158,6 +160,7 @@ type Policy = {
     // id must be unqiue
     id: string;
     effect: PolicyEffect;
+    // Multiple conditions are evaluated as AND (ie all conditions must be true)
     conditions?: [PolicyCondition];
     // Roles can have a glob
     roles: string[];
@@ -187,5 +190,7 @@ export {
     LoggingCallback,
     LoggingCallbackLog,
     RequestContext,
+    ContextUser,
+    WahnConstructorOptions,
     WahnEvaluationOptions,
 };

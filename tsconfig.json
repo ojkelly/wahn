@@ -2,8 +2,9 @@
     "compilerOptions": {
         "target": "es6",
         "module": "commonjs",
+        "allowJs": true,
         "outDir": "./.build",
-        "declaration": false,
+        "declaration": true,
         "noImplicitAny": false,
         "removeComments": true,
         "moduleResolution": "node",

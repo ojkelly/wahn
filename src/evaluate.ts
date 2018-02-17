@@ -1,6 +1,5 @@
 import * as mm from "micromatch";
 import * as debug from "debug";
-
 import {
     Wahn,
     WahnEvaluationOptions,
@@ -16,6 +15,11 @@ import { AuthorizationError, EvaluationDeniedError } from "./errors";
 const info: debug.IDebugger = debug("wahn:info");
 const log: debug.IDebugger = debug("wahn:log");
 const warn: debug.IDebugger = debug("wahn:warn");
+
+/** */
+function get<obj>(obj: obj, path): any {
+    return path.split(".").reduce((obj = {}, key) => obj[key], obj);
+}
 
 /**
  * Make a decision about access for a request
@@ -131,14 +135,28 @@ function matchPolicies({ policies, action, resource, context }): Policy[] {
 }
 
 function evaluateConditions({ policy, resource, context }): boolean {
+    console.log("evaluateConditions", {
+        policy,
+        conditions: policy.conditions,
+        resource,
+        context,
+    });
     let outcome: boolean = false;
     // Do the condtions make this policy applicable?
+    // All conditions must return true, else outcome in DENY
     policy.conditions.map((condition: PolicyCondition) => {
         switch (condition.operator) {
             case PolicyOperator.match:
+                console.log({
+                    condition,
+                    context,
+                    fieldPath: condition.field,
+                    field: context[condition.field],
+                    t: get(context, condition.field),
+                });
                 if (
                     mm.isMatch(
-                        context[condition.field],
+                        get(context, condition.field),
                         `${condition.expected}`,
                     )
                 ) {
@@ -148,7 +166,7 @@ function evaluateConditions({ policy, resource, context }): boolean {
             case PolicyOperator.notMatch:
                 if (
                     mm.isMatch(
-                        context[condition.field],
+                        get(context, condition.field),
                         `${condition.expected}`,
                     ) === false
                 ) {
@@ -168,6 +186,7 @@ type WahnInternalEvaluationOptions = {
 };
 
 export {
+    WahnInternalEvaluationOptions,
     // Fuctions
     evaluateAccess,
     evaluateConditions,
