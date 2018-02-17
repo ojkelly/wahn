@@ -1,6 +1,9 @@
 import * as mm from "micromatch";
 import * as debug from "debug";
 
+import { AuthorizationError, EvaluationDeniedError } from "./errors";
+import { evaluateAccess, matchPolicies } from "./evaluate";
+
 const info: debug.IDebugger = debug("wahn:info");
 const log: debug.IDebugger = debug("wahn:log");
 const warn: debug.IDebugger = debug("wahn:warn");
@@ -11,9 +14,14 @@ const warn: debug.IDebugger = debug("wahn:warn");
 class Wahn {
     private policies: Policy[];
 
+    private loggingCallback: LoggingCallback | undefined;
+
     constructor(options: WahnConstructorOptions) {
-        // Policies can be added at runtime only
         this.policies = options.policies;
+
+        if (typeof options.loggingCallback === "function") {
+            this.loggingCallback = options.loggingCallback;
+        }
     }
 
     /**
@@ -32,7 +40,6 @@ class Wahn {
             const matchedPolicy: boolean = mm.some(roles, policy.roles, {
                 nocase: true,
             });
-            console.debug("matched policy", policy);
             if (matchedPolicy) {
                 return policy;
             }
@@ -40,23 +47,9 @@ class Wahn {
         return policies;
     }
 
-    /**
-     * A callback for logging every request that fails.
-     * @param options
-     */
-    private evaluationFailCallback({
-        context,
-        resource,
-        reason,
-    }: WahnEvaluationFailedOptions): void {
-        console.log("Access Denied: ", reason);
-    }
-    /**
-     *
-     * @param options
-     */
     public evaluateAccess({
         context,
+        action,
         resource,
     }: WahnEvaluationOptions): boolean {
         try {
@@ -68,97 +61,39 @@ class Wahn {
                 context.user.roles,
             );
 
-            // Check if any of the policies have the resource
-            const matchedPolicies: Policy[] = policies.filter(
-                (policy: Policy) => {
-                    let policyResourceMatch: boolean = false;
-                    let policyConditionMatch: boolean = false;
-
-                    // Does the policy match the current resource?
-                    if (mm.some(resource, policy.resources)) {
-                        log("Policy does match resource.");
-                        policyResourceMatch = true;
-                    } else {
-                        log("Policy does not match resource.");
-                        return false;
-                    }
-                    // Does the policy have a condition?
-                    if (
-                        typeof policy.conditions !== "undefined" &&
-                        policy.conditions.length >= 1
-                    ) {
-                        // Do the condtions make this policy applicable?
-                        policy.conditions.map((condition: PolicyCondition) => {
-                            switch (condition.operator) {
-                                case PolicyOperator.match:
-                                    if (
-                                        mm.isMatch(
-                                            context[condition.field],
-                                            `${condition.value}`,
-                                        )
-                                    ) {
-                                        policyConditionMatch = true;
-                                    }
-                                    break;
-                                case PolicyOperator.notMatch:
-                                    if (
-                                        mm.isMatch(
-                                            context[condition.field],
-                                            `${condition.value}`,
-                                        ) === false
-                                    ) {
-                                        policyConditionMatch = true;
-                                    }
-                                    break;
-                            }
-                        });
-                    } else {
-                        // If there are no conditions on the policy, we can proceed
-                        policyConditionMatch = true;
-                    }
-                    console.log({ policy });
-                    if (policyResourceMatch && policyConditionMatch) {
-                        return true;
-                    }
-                    return false;
-                },
-            );
-
-            // 3. Evaluate all applicable polices.
-            // a. If no policies are found: `outcome=deny`
-            if (matchedPolicies.length === 0) {
-                throw new EvaluationDenied("No policies matched the request.");
-            }
-
-            policies.forEach((policy: Policy) => {
-                // 4. Is there an explict `deny` for the `resource`
-                if (policy.action === PolicyAction.Deny) {
-                    // a. If`yes`then`outcome=deny`and exit evaluation b. If`no` then continue.
-                    throw new EvaluationDenied(
-                        "Access has been explicty denied.",
-                    );
-                }
-
-                // 5. Is there an `allow`?
-                if (policy.action === PolicyAction.Allow) {
-                    // a. If `yes` then `outcome=allow` and exit evaluation
-                    outcome = true;
-                } else {
-                    throw new EvaluationDenied("Access has not been allowed.");
-                }
-            });
-            // b. If `no` then continue.
-
-            // 6. No `allow` found: `outcome=deny`
-            return outcome;
-        } catch (EvaluationDenied) {
-            // console.log(EvaluationDenied.message);
-            this.evaluationFailCallback({
+            outcome = evaluateAccess({
+                policies,
                 context,
+                action,
                 resource,
-                reason: EvaluationDenied.message,
+            });
+
+            return outcome;
+        } catch (EvaluationDeniedError) {
+            // console.log(EvaluationDeniedError.message);
+            this.evaluationFailCallback({
+                policyId: EvaluationDeniedError.policyId,
+                context,
+                action,
+                reason: EvaluationDeniedError.reason,
             });
             return false;
+        }
+    }
+
+    /**
+     * A callback for logging every request that fails.
+     * @param options
+     */
+    private evaluationFailCallback({
+        context,
+        action,
+        reason,
+        policyId,
+    }: WahnEvaluationFailedOptions): void {
+        info("evaluationFailCallback", { policyId, context, action, reason });
+        if (typeof this.loggingCallback === "function") {
+            this.loggingCallback({ policyId, context, action, reason });
         }
     }
 }
@@ -167,31 +102,37 @@ class Wahn {
 
 type WahnConstructorOptions = {
     policies: Policy[];
+    loggingCallback?: LoggingCallback;
 };
 
 type WahnEvaluationOptions = {
     context: RequestContext;
+    action: string;
     resource: string;
 };
 type WahnEvaluationFailedOptions = {
+    policyId: string;
     context: RequestContext;
-    resource: string;
+    action: string;
     reason: string;
 };
 
 type ContextUser = {
     id: string;
-    ip?: string;
-    // TODO: Filter wildcards from roles
     roles: string[];
 };
 
 type RequestContext = {
     user: ContextUser;
+    resource?: any;
+    request?: {
+        ip?: string;
+        [key: string]: any;
+    };
     [key: string]: any;
 };
 
-enum PolicyAction {
+enum PolicyEffect {
     Allow = "Allow",
     Deny = "Deny",
 }
@@ -202,40 +143,49 @@ enum PolicyOperator {
 }
 
 type PolicyCondition = {
+    // A dot path to the value on the object
     field: string;
-    // A dot path to the value on the context object
-    value: string;
+
+    // Expected value
+    expected: string;
+
     operator: PolicyOperator;
 };
 
 type Policy = {
+    actions: string[];
     resources: string[];
-    action: PolicyAction;
-    conditions?: PolicyCondition[];
+    // id must be unqiue
+    id: string;
+    effect: PolicyEffect;
+    conditions?: [PolicyCondition];
     // Roles can have a glob
     roles: string[];
 };
 
-// [ Errors ]---------------------------------------------------------------------------------------
-
-class ExtendableError extends Error {
-    constructor(message) {
-        super(message);
-        this.name = this.constructor.name;
-        this.stack = new Error(message).stack;
-    }
+interface LoggingCallback {
+    (LoggingCallbackLog): void;
 }
 
-class AuthorizationError extends ExtendableError {}
-class EvaluationDenied extends ExtendableError {}
+type LoggingCallbackLog = {
+    policyId: string;
+    context: RequestContext;
+    action: string;
+    reason: string;
+};
 
 // [ Export ]---------------------------------------------------------------------------------------
 
 export {
     Wahn,
+    // Policy Exports
     Policy,
-    PolicyAction,
+    PolicyEffect,
     PolicyCondition,
-    RequestContext,
     PolicyOperator,
+    // Logging Exports
+    LoggingCallback,
+    LoggingCallbackLog,
+    RequestContext,
+    WahnEvaluationOptions,
 };
