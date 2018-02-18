@@ -129,6 +129,7 @@ type WahnEvaluationFailedOptions = {
 type ContextUser = {
     id: string;
     roles: string[];
+    [key: string]: any;
 };
 
 type RequestContext = {
@@ -173,7 +174,7 @@ type Policy = {
     id: string;
     effect: PolicyEffect;
     // Multiple conditions are evaluated as AND (ie all conditions must be true)
-    conditions?: [PolicyCondition];
+    conditions?: PolicyCondition[];
     // Roles can have a glob
     roles: string[];
 };

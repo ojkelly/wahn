@@ -188,6 +188,68 @@ test("Evaluate a policy with condition of user id must match user id on request 
     );
 });
 
+test("Evaluate a policy with multiple conditions on request object (ALLOW)", async t => {
+    // Setup some initial values for this policy
+    const allowedIp: string = faker.internet.ip();
+
+    const roles: string[] = [faker.name.jobTitle(), faker.name.jobTitle()];
+    const userId: string = faker.random.uuid();
+    const context: RequestContext = {
+        user: {
+            id: userId,
+            roles: roles,
+            knownIp: allowedIp,
+        },
+        request: {
+            user: {
+                id: userId,
+                ip: allowedIp,
+            },
+        },
+    };
+    const resource: string = `${faker.hacker.noun()}::${faker.hacker.noun()}`;
+    const action: string = faker.hacker.verb();
+
+    const condition: PolicyCondition = {
+        field: "request.user.id",
+        expectedOnContext: "user.id",
+        operator: PolicyOperator.match,
+    };
+    const conditionTwo: PolicyCondition = {
+        field: "request.user.ip",
+        expectedOnContext: "user.knownIp",
+        operator: PolicyOperator.match,
+    };
+    // Assemble our policy
+    const policy: Policy = {
+        id: faker.random.uuid(),
+        resources: [resource],
+        actions: [action],
+        effect: PolicyEffect.Allow,
+        conditions: [condition, conditionTwo],
+        roles: roles,
+    };
+
+    // Add in our logging callback
+    let logCallbackResult: LoggingCallbackLog | undefined = undefined;
+    const loggingCallback: LoggingCallback = (
+        log: LoggingCallbackLog,
+    ): void => {
+        logCallbackResult = log;
+    };
+
+    // Create a new wahn
+    const wahn: Wahn = new Wahn({
+        policies: [policy],
+        loggingCallback,
+    });
+
+    t.true(
+        wahn.evaluateAccess({ context, resource, action }),
+        "Failed to give access",
+    );
+});
+
 // test.skip("evaluate conditional policy", async t => {
 //     const conditionalRoles: string[] = ["user", "conditional user"];
 //     const testCondition: string = "someValue";
