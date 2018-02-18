@@ -315,15 +315,15 @@ function matchSingleValue({
 }): boolean {
     try {
         let outcome: boolean = false;
-        console.log("matchSingleValue", {
-            condition,
-            context,
-            matchExpected,
-            matchExpectedOnContext,
-            resource,
-            fieldPath: condition.field,
-            field: get(context, condition.field),
-        });
+        // console.log("matchSingleValue", {
+        //     condition,
+        //     context,
+        //     matchExpected,
+        //     matchExpectedOnContext,
+        //     resource,
+        //     fieldPath: condition.field,
+        //     field: get(context, condition.field),
+        // });
         let matchResult: boolean | undefined = undefined;
 
         if (matchExpected === true) {
