@@ -121,7 +121,8 @@ A condition scopes a Policy to values you provide in the context object.
 When you define a `Condition` there are 3 parameters:
 
 * `field`: a dot path to the key on your `context` object.
-* `expected`: the value you expect to see, prefix it with `context::` followed by a dot path to match to another
+* `expected`: the value you expect to see (hard coded into the policy)
+* `expectedOnContext`: a dot path to the expected value on your `context` object.
   value on the context object
 * `operator`: `match`, `notMatch`, `lessThan`, `greaterThan`
 
