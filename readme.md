@@ -69,7 +69,7 @@ const hasAccess: boolean = wahn.evaluateAccess({
 
 You can view the `Policy` type detailed type information, below is the plain JSON version.
 
-```JSON
+```javascript
 {
     // A action represents the object an action is being performed on.
     // In the example below we have two GraphQL paths.
