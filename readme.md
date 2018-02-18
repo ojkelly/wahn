@@ -2,7 +2,13 @@
 
 **Policy Machine for Role Based Access Control**
 
-## Usage
+Designed for use with the [Bunjil](https://github.com/ojkelly/bunjil) GraphQL server, Wahn is flexible policy based authorization engine. It is inpsired by other policy engines including AWS IAM.
+
+## Getting Started
+
+`yarn add wahn` or `npm install wahn`
+
+### Usage
 
 ```typescript
 import {
@@ -39,7 +45,11 @@ const policy: Policy = {
 const wahn: Wahn = new Wahn({
     policies: [policy],
 });
+```
 
+Now you have an `Wahn` instance with policies, you can attempt to access something.
+
+```typescript
 // Now lets check if our user has access to our test resource
 const hasAccess: boolean = wahn.evaluateAccess({
     context,
@@ -101,20 +111,7 @@ You can view the `Policy` type detailed type information, below is the plain JSO
 }
 ```
 
-## Evalutation Process
-
-1. Outcome defaults to: `deny`.
-2. Find all applicable policies.
-   a. If none found: `outcome=deny`
-3. Evaluate all applicable polices.
-4. Is there an explict `deny` for the `resource`?
-   a. If`yes`then`outcome=deny`and exit evaluation b. If`no` then continue.
-5. Is there an `allow`?
-   a. If `yes` then `outcome=allow` and exit evaluation
-   b. If `no` then continue.
-6. No `allow` found: `outcome=deny`
-
-## Conditions
+### Conditions
 
 Conditions provide a powerful way to refine access on a Policy. `wahn` makes no assumptions about
 your implementation, and so the implementation of conditions is partially dependent on your impelmenation.
@@ -127,3 +124,34 @@ When you define a `Condition` there are 3 parameters:
 * `expected`: the value you expect to see, prefix it with `context::` followed by a dot path to match to another
   value on the context object
 * `operator`: `match`, `notMatch`, `lessThan`, `greaterThan`
+
+## Running the tests
+
+Use `yarn tests` or `npm run tests`.
+
+Tests are written with `ava`, and we would strongly like tests with any new functionality.
+
+## Deployment
+
+Wahn could either be integrated into your application, or setup as a
+standalone server.
+
+## Contributing
+
+Please read [CONTRIBUTING.md](https://github.com/ojkelly/wahn/CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
+
+## Versioning
+
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/ojkelly/wahn/tags).
+
+## Authors
+
+* **Owen Kelly** - [ojkelly](https://github.com/ojkelly)
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.md](https://github.com/ojkelly/wahn/LICENSE.md) file for details
+
+## Acknowledgments
+
+* Inspired in part by AWS IAM, NIST RBAC

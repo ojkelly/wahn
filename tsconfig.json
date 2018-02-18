@@ -2,8 +2,7 @@
     "compilerOptions": {
         "target": "es6",
         "module": "commonjs",
-        "allowJs": true,
-        "outDir": "dist",
+        "outDir": "lib",
         "declaration": true,
         "noImplicitAny": false,
         "removeComments": true,
