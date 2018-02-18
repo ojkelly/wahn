@@ -11,7 +11,7 @@ import {
     LoggingCallbackLog,
 } from "../src/index";
 
-// // [ Policy With Conditions ]-----------------------------------------------------------------------
+// [ Policy With Conditions ]-----------------------------------------------------------------------
 
 test("Evaluate a policy with condition of IP on request where IP is stored on Policy (ALLOW)", async t => {
     // Setup some initial values for this policy
@@ -64,7 +64,7 @@ test("Evaluate a policy with condition of IP on request where IP is stored on Po
     );
 });
 
-test.skip("Evaluate a policy with condition of IP on request where IP is stored on Policy (DENY)", async t => {
+test("Evaluate a policy with condition of IP on request where IP is stored on Policy (DENY) with log calback", async t => {
     // Setup some initial values for this policy
     const allowedIp: string = faker.internet.ip();
     const roles: string[] = [faker.name.jobTitle(), faker.name.jobTitle()];
@@ -78,11 +78,84 @@ test.skip("Evaluate a policy with condition of IP on request where IP is stored 
         },
     };
     const resource: string = `${faker.hacker.noun()}::${faker.hacker.noun()}`;
+
     const action: string = faker.hacker.verb();
 
     const condition: PolicyCondition = {
-        field: "${request.ip}",
+        field: "request.ip",
         expected: allowedIp,
+        operator: PolicyOperator.match,
+    };
+
+    const policyId: string = faker.random.uuid();
+
+    // Assemble our policy
+    const policy: Policy = {
+        id: policyId,
+        resources: [resource],
+        actions: [action],
+        effect: PolicyEffect.Allow,
+        conditions: [condition],
+        roles: roles,
+    };
+
+    // Add in our logging callback
+    let logCallbackResult: LoggingCallbackLog | undefined = undefined;
+    const loggingCallback: LoggingCallback = (
+        log: LoggingCallbackLog,
+    ): void => {
+        logCallbackResult = log;
+    };
+
+    // Create a new wahn
+    const wahn: Wahn = new Wahn({
+        policies: [policy],
+        loggingCallback,
+    });
+
+    const failedResource: string = `${faker.hacker.noun()}::${faker.hacker.noun()}`;
+    t.false(
+        wahn.evaluateAccess({
+            context,
+            resource: failedResource,
+            action,
+        }),
+    );
+
+    t.deepEqual(
+        logCallbackResult,
+        {
+            policyId: "",
+            context,
+            action,
+            resource: failedResource,
+            reason: "No policies matched the request.",
+        },
+        "LoggingCallbackResult is wrong",
+    );
+});
+
+test("Evaluate a policy with condition of user id must match user id on request object (ALLOW)", async t => {
+    // Setup some initial values for this policy
+    const roles: string[] = [faker.name.jobTitle(), faker.name.jobTitle()];
+    const userId: string = faker.random.uuid();
+    const context: RequestContext = {
+        user: {
+            id: userId,
+            roles: roles,
+        },
+        request: {
+            user: {
+                id: userId,
+            },
+        },
+    };
+    const resource: string = `${faker.hacker.noun()}::${faker.hacker.noun()}`;
+    const action: string = faker.hacker.verb();
+
+    const condition: PolicyCondition = {
+        field: "request.user.id",
+        expectedOnContext: "user.id",
         operator: PolicyOperator.match,
     };
     // Assemble our policy
@@ -109,13 +182,9 @@ test.skip("Evaluate a policy with condition of IP on request where IP is stored 
         loggingCallback,
     });
 
-    t.false(
-        wahn.evaluateAccess({
-            context,
-            action,
-            resource: faker.random.uuid(),
-        }),
-        "Failed to prevent access",
+    t.true(
+        wahn.evaluateAccess({ context, resource, action }),
+        "Failed to give access",
     );
 });
 

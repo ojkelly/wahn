@@ -3,7 +3,7 @@
         "target": "es6",
         "module": "commonjs",
         "allowJs": true,
-        "outDir": "./.build",
+        "outDir": "dist",
         "declaration": true,
         "noImplicitAny": false,
         "removeComments": true,
@@ -12,7 +12,7 @@
         "sourceMap": true,
         "inlineSources": false,
         "strictNullChecks": true,
-        "watch": true,
+        "watch": false,
         "allowSyntheticDefaultImports": false
     },
     "filesGlob": ["typings.d.ts", "./src/**/*.ts", "./test/**/*.ts"],

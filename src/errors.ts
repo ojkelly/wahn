@@ -19,4 +19,4 @@ class EvaluationDeniedError extends ExtendableError {
     }
 }
 
-export { AuthorizationError, EvaluationDeniedError };
+export { AuthorizationError, EvaluationDeniedError, ExtendableError };

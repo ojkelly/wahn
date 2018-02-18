@@ -2,8 +2,10 @@
     "name": "wahn",
     "version": "0.1.0",
     "description": "Policy Machine for Role Based Access Control",
-    "main": "src/index.ts",
+    "main": "./dist/src/index.ts",
     "scripts": {
+        "build": "yarn run clean && tsc",
+        "clean": "rimraf ./dist",
         "test": "ava-ts ./tests/*.spec.ts",
         "dev": "DEBUG=wahn:*; ava-ts ./tests/*.spec.ts --watch"
     },
@@ -28,6 +30,7 @@
         "faker": "^4.1.0",
         "husky": "^0.14.3",
         "prettier": "^1.10.2",
+        "rimraf": "^2.6.2",
         "ts-node": "^4.1.0",
         "typescript": "^2.7.1"
     },

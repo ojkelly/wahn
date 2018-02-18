@@ -75,6 +75,7 @@ class Wahn {
                 policyId: EvaluationDeniedError.policyId,
                 context,
                 action,
+                resource,
                 reason: EvaluationDeniedError.reason,
             });
             return false;
@@ -89,11 +90,18 @@ class Wahn {
         context,
         action,
         reason,
+        resource,
         policyId,
     }: WahnEvaluationFailedOptions): void {
         info("evaluationFailCallback", { policyId, context, action, reason });
         if (typeof this.loggingCallback === "function") {
-            this.loggingCallback({ policyId, context, action, reason });
+            this.loggingCallback({
+                policyId,
+                context,
+                action,
+                reason,
+                resource,
+            });
         }
     }
 }
@@ -113,6 +121,7 @@ type WahnEvaluationOptions = {
 type WahnEvaluationFailedOptions = {
     policyId: string;
     context: RequestContext;
+    resource: string;
     action: string;
     reason: string;
 };
@@ -149,7 +158,10 @@ type PolicyCondition = {
     field: string;
 
     // Expected value
-    expected: string | string[];
+    expected?: string | string[];
+
+    // A dot path to the context object
+    expectedOnContext?: string | string[];
 
     operator: PolicyOperator;
 };
@@ -175,6 +187,7 @@ type LoggingCallbackLog = {
     context: RequestContext;
     action: string;
     reason: string;
+    resource: string;
 };
 
 // [ Export ]---------------------------------------------------------------------------------------
