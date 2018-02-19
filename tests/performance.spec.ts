@@ -31,7 +31,7 @@ const allowedPerformance: Timings = {
         ninetyNinth: 1,
         ninetyFifth: 0.95,
         ninetieth: 0.9,
-        tenth: 0.05,
+        tenth: 0.6,
     },
 };
 
