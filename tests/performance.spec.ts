@@ -24,14 +24,14 @@ const numOfTimedFunctionCalls: number = 10000;
 const maxExecutionTimeMs: number = 2;
 
 const allowedPerformance: Timings = {
-    high: 10,
+    high: 20,
     low: 1,
     average: 0.5,
     percentiles: {
         ninetyNinth: 1,
-        ninetyFifth: 0.7,
-        ninetieth: 0.07,
-        tenth: 0.03,
+        ninetyFifth: 0.95,
+        ninetieth: 0.9,
+        tenth: 0.05,
     },
 };
 

@@ -13,7 +13,9 @@ Designed for use with the [Bunjil](https://github.com/ojkelly/bunjil) GraphQL se
 
 ## Getting Started
 
-`yarn add wahn` or `npm install wahn`
+`yarn add wahn`
+
+`npm install wahn`
 
 ### Usage
 
