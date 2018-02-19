@@ -1,6 +1,6 @@
 {
   "name": "wahn",
-  "version": "0.9.5",
+  "version": "0.9.6",
   "description": "Policy Machine for Role Based Access Control",
   "main": "./lib/src/index.ts",
   "scripts": {
