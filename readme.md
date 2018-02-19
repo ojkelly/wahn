@@ -11,25 +11,8 @@ Designed for use with the [Bunjil](https://github.com/ojkelly/bunjil) GraphQL se
 ### Usage
 
 ```typescript
-import {
-    Wahn,
-    Policy,
-    PolicyAction,
-    RequestContext,
-    PolicyOperator,
-} from "whan";
-
-// In your request you will have information about the user, their roles,
-// and possibly other information about their session, like their
-// OS or IP
-// You pass these to `wahn` during your evaluateAccess check via the
-// context object
-const context: RequestContext = {
-    user: {
-        id: "UserId",
-        roles: ["authenticated user"],
-    },
-};
+// Typescript
+import { Wahn, Policy, PolicyAction, PolicyOperator } from "wahn";
 
 // Define a policy
 const policy: Policy = {
@@ -47,9 +30,44 @@ const wahn: Wahn = new Wahn({
 });
 ```
 
+```javascript
+// javascript
+import { Wahn } from "wahn";
+
+// Define a policy
+const policy = {
+    // This is a simple policy with only one resource
+    resources: ["test::resource"],
+    // You can either `Allow` or `Deny` access
+    action: "Allow",
+    // This policy is then attached to the role `authenticated user`
+    roles: ["authenticated user"],
+};
+
+// Now we create a Wahn
+const wahn = new Wahn({
+    policies: [policy],
+});
+```
+
 Now you have an `Wahn` instance with policies, you can attempt to access something.
 
 ```typescript
+// typescript
+import { RequestContext } from "wahn";
+
+// In your request you will have information about the user, their roles,
+// and possibly other information about their session, like their
+// OS or IP
+// You pass these to `wahn` during your evaluateAccess check via the
+// context object
+const context: RequestContext = {
+    user: {
+        id: "UserId",
+        roles: ["authenticated user"],
+    },
+};
+
 // Now lets check if our user has access to our test resource
 const hasAccess: boolean = wahn.evaluateAccess({
     context,
@@ -59,6 +77,37 @@ const hasAccess: boolean = wahn.evaluateAccess({
 
 // Now lets check if our user has access to a different resource
 const hasAccess: boolean = wahn.evaluateAccess({
+    context,
+    resource: "AResourceTheUserCannotAccess",
+});
+// hasAccess === false
+```
+
+```javascript
+//javascript
+import { RequestContext } from "whan";
+
+// In your request you will have information about the user, their roles,
+// and possibly other information about their session, like their
+// OS or IP
+// You pass these to `wahn` during your evaluateAccess check via the
+// context object
+const context = {
+    user: {
+        id: "UserId",
+        roles: ["authenticated user"],
+    },
+};
+
+// Now lets check if our user has access to our test resource
+const hasAccess = wahn.evaluateAccess({
+    context,
+    resource: "test::resource",
+});
+// hasAccess === true
+
+// Now lets check if our user has access to a different resource
+const hasAccess = wahn.evaluateAccess({
     context,
     resource: "AResourceTheUserCannotAccess",
 });
@@ -156,3 +205,4 @@ This project is licensed under the MIT License - see the [LICENSE.md](https://gi
 ## Acknowledgments
 
 * Inspired in part by AWS IAM, NIST RBAC
+* [Behind the name](<https://en.wikipedia.org/wiki/Crow_(Australian_Aboriginal_mythology)>)
