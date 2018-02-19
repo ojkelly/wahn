@@ -17,7 +17,7 @@ import {
     TimeExecutionOptions,
     Timings,
     TimedPerformance,
-} from "wedgeTail";
+} from "wedgetail";
 
 const numOfPoliciesToGenerate: number = 5000;
 const numOfTimedFunctionCalls: number = 10000;
