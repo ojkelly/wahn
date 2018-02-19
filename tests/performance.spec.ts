@@ -24,7 +24,7 @@ const numOfTimedFunctionCalls: number = 10000;
 const maxExecutionTimeMs: number = 2;
 
 const allowedPerformance: Timings = {
-    high: 20,
+    high: 40,
     low: 1,
     average: 0.5,
     percentiles: {
