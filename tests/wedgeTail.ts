@@ -2,14 +2,14 @@ import { performance } from "perf_hooks";
 
 import * as percentile from "percentile";
 
-type timeExecutionCallback = (...callbackArgs) => any;
-type timeExecutionOptions = {
+type TimeExecutionCallback = (...callbackArgs) => any;
+type TimeExecutionOptions = {
+    expectedTimings: Timings;
     numberOfExecutions: number;
-    callback: timeExecutionCallback;
+    callback: TimeExecutionCallback;
     callbackArgs?: any[];
 };
-
-type timedPerformance = {
+type Timings = {
     high: number;
     low: number;
     average: number;
@@ -20,8 +20,23 @@ type timedPerformance = {
         tenth: number;
     };
 };
+type TimedPerformance = {
+    timings: Timings;
+    results: {
+        passed: boolean;
+        high: boolean;
+        low: boolean;
+        average: boolean;
+        percentiles: {
+            ninetyNinth: boolean;
+            ninetyFifth: boolean;
+            ninetieth: boolean;
+            tenth: boolean;
+        };
+    };
+};
 
-type comparePerformanceOutcome = {
+type ComparePerformanceOutcome = {
     passed: boolean;
     high: boolean;
     low: boolean;
@@ -36,8 +51,13 @@ type comparePerformanceOutcome = {
 
 async function timeExecution(
     this: any,
-    { numberOfExecutions, callback, callbackArgs }: timeExecutionOptions,
-): Promise<timedPerformance> {
+    {
+        expectedTimings,
+        numberOfExecutions,
+        callback,
+        callbackArgs,
+    }: TimeExecutionOptions,
+): Promise<TimedPerformance> {
     // Execute the function
     const executions: any[] = await Array(numberOfExecutions)
         .fill("0")
@@ -59,8 +79,7 @@ async function timeExecution(
         (acc: number, current: number) => acc + current,
     );
     const average: number = sum / numberOfExecutions;
-
-    return {
+    const timings: any = {
         high,
         low,
         average,
@@ -71,16 +90,25 @@ async function timeExecution(
             tenth: percentile(10, executions),
         },
     };
+    const results: any = comparePerformance({
+        expected: expectedTimings,
+        results: timings,
+    });
+
+    return {
+        timings,
+        results,
+    };
 }
 
 function comparePerformance({
     expected,
     results,
 }: {
-    expected: timedPerformance;
-    results: timedPerformance;
-}): comparePerformanceOutcome {
-    let outcome: comparePerformanceOutcome = {
+    expected: Timings;
+    results: Timings;
+}): ComparePerformanceOutcome {
+    let outcome: ComparePerformanceOutcome = {
         passed: false,
         high: expected.high > results.high,
         low: expected.low > results.low,
@@ -113,9 +141,10 @@ function comparePerformance({
 
 export {
     timeExecution,
-    timeExecutionOptions,
-    timeExecutionCallback,
-    timedPerformance,
+    TimeExecutionOptions,
+    Timings,
+    TimeExecutionCallback,
+    TimedPerformance,
     comparePerformance,
-    comparePerformanceOutcome,
+    ComparePerformanceOutcome,
 };

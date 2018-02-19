@@ -14,17 +14,16 @@ import {
 
 import {
     timeExecution,
-    timeExecutionOptions,
-    timedPerformance,
-    comparePerformance,
-    comparePerformanceOutcome,
+    TimeExecutionOptions,
+    Timings,
+    TimedPerformance,
 } from "./wedgeTail";
 
 const numOfPoliciesToGenerate: number = 5000;
 const numOfTimedFunctionCalls: number = 5000;
 const maxExecutionTimeMs: number = 2;
 
-const allowedPerformance: timedPerformance = {
+const allowedPerformance: Timings = {
     high: 4,
     low: 1,
     average: 0.5,
@@ -301,7 +300,8 @@ test.only("Performance of multiple policies with multiple conditions on request 
         policies,
     });
 
-    const results: timedPerformance = await timeExecution({
+    const timings: TimedPerformance = await timeExecution({
+        expectedTimings: allowedPerformance,
         numberOfExecutions: numOfTimedFunctionCalls,
         callback: () => {
             wahn.evaluateAccess({
@@ -312,14 +312,9 @@ test.only("Performance of multiple policies with multiple conditions on request 
         },
     });
 
-    const performanceResults: comparePerformanceOutcome = comparePerformance({
-        expected: allowedPerformance,
-        results,
-    });
+    t.true(timings.results.passed, `Execution took too long.`);
 
-    t.true(performanceResults.passed, `Execution took too long.`);
-
-    if (performanceResults.passed === false) {
-        console.log({ results, performanceResults });
+    if (timings.results.passed === false) {
+        console.log({ timings });
     }
 });
