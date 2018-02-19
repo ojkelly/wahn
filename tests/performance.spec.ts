@@ -1,6 +1,6 @@
 import test from "ava";
 import * as faker from "faker";
-import { performance } from "perf_hooks";
+
 import {
     Wahn,
     Policy,
@@ -17,14 +17,14 @@ import {
     TimeExecutionOptions,
     Timings,
     TimedPerformance,
-} from "./wedgeTail";
+} from "wedgeTail";
 
 const numOfPoliciesToGenerate: number = 5000;
-const numOfTimedFunctionCalls: number = 5000;
+const numOfTimedFunctionCalls: number = 10000;
 const maxExecutionTimeMs: number = 2;
 
 const allowedPerformance: Timings = {
-    high: 4,
+    high: 10,
     low: 1,
     average: 0.5,
     percentiles: {
@@ -59,16 +59,23 @@ test("Performance of simple policy", async t => {
         policies: [policy],
     });
 
-    const startTimeMs: number = performance.now();
-    const result: boolean = wahn.evaluateAccess({ context, resource, action });
-    const endTimeMs: number = performance.now();
+    const timings: TimedPerformance = await timeExecution({
+        expectedTimings: allowedPerformance,
+        numberOfExecutions: numOfTimedFunctionCalls,
+        callback: () => {
+            wahn.evaluateAccess({
+                context,
+                action,
+                resource,
+            });
+        },
+    });
 
-    const timeElapsedMs: number = endTimeMs - startTimeMs;
-    t.true(result, "Failed to give access");
-    t.true(
-        timeElapsedMs < maxExecutionTimeMs,
-        `Execution took too long. Time elapsed: ${timeElapsedMs}ms`,
-    );
+    t.true(timings.results.passed, `Execution took too long.`);
+
+    if (timings.results.passed === false) {
+        console.log({ timings });
+    }
 });
 
 test("Performance of many simple policy", async t => {
@@ -113,17 +120,23 @@ test("Performance of many simple policy", async t => {
         policies,
     });
 
-    const startTimeMs: number = performance.now();
-    const result: boolean = wahn.evaluateAccess({ context, resource, action });
-    const endTimeMs: number = performance.now();
+    const timings: TimedPerformance = await timeExecution({
+        expectedTimings: allowedPerformance,
+        numberOfExecutions: numOfTimedFunctionCalls,
+        callback: () => {
+            wahn.evaluateAccess({
+                context,
+                action,
+                resource,
+            });
+        },
+    });
 
-    const timeElapsedMs: number = endTimeMs - startTimeMs;
+    t.true(timings.results.passed, `Execution took too long.`);
 
-    t.true(result, "Failed to give access");
-    t.true(
-        timeElapsedMs < maxExecutionTimeMs,
-        `Execution took too long. Time elapsed: ${timeElapsedMs}ms`,
-    );
+    if (timings.results.passed === false) {
+        console.log({ timings });
+    }
 });
 
 test("Performance of multiple policies with multiple conditions on request object (ALLOW)", async t => {
@@ -205,23 +218,29 @@ test("Performance of multiple policies with multiple conditions on request objec
         policies,
     });
 
-    const startTimeMs: number = performance.now();
-    const result: boolean = wahn.evaluateAccess({ context, resource, action });
-    const endTimeMs: number = performance.now();
+    const timings: TimedPerformance = await timeExecution({
+        expectedTimings: allowedPerformance,
+        numberOfExecutions: numOfTimedFunctionCalls,
+        callback: () => {
+            wahn.evaluateAccess({
+                context,
+                action,
+                resource,
+            });
+        },
+    });
 
-    const timeElapsedMs: number = endTimeMs - startTimeMs;
+    t.true(timings.results.passed, `Execution took too long.`);
 
-    t.true(result, "Failed to give access");
-    t.true(
-        timeElapsedMs < maxExecutionTimeMs,
-        `Execution took too long. Time elapsed: ${timeElapsedMs}ms`,
-    );
+    if (timings.results.passed === false) {
+        console.log({ timings });
+    }
 });
 
 /**
  * In this test, we run evaluateAccess 5000 times, and average the time result
  */
-test.only("Performance of multiple policies with multiple conditions on request object (ALLOW)", async t => {
+test("Performance of multiple policies with multiple conditions on request object (ALLOW)", async t => {
     // Setup some initial values for this policy
     const allowedIp: string = faker.internet.ip();
 

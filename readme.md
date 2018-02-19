@@ -181,6 +181,11 @@ Use `yarn tests` or `npm run tests`.
 
 Tests are written with `ava`, and we would strongly like tests with any new functionality.
 
+### Performance
+
+`wahn` needs to be as performant as possible. We use `wedgetail` to keep track of performance
+changes. Any new functionality cannot increase the performance beyond resonable limits.
+
 ## Deployment
 
 Wahn could either be integrated into your application, or setup as a
