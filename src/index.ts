@@ -70,7 +70,6 @@ class Wahn {
 
             return outcome;
         } catch (EvaluationDeniedError) {
-            // console.log(EvaluationDeniedError.message);
             this.evaluationFailCallback({
                 policyId: EvaluationDeniedError.policyId,
                 context,
@@ -159,10 +158,10 @@ type PolicyCondition = {
     field: string;
 
     // Expected value
-    expected?: string | string[];
+    expected?: (number | string)[];
 
     // A dot path to the context object
-    expectedOnContext?: string | string[];
+    expectedOnContext?: string[];
 
     operator: PolicyOperator;
 };

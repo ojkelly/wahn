@@ -165,12 +165,12 @@ test("Performance of multiple policies with multiple conditions on request objec
 
         const condition: PolicyCondition = {
             field: "request.user.id",
-            expectedOnContext: "user.id",
+            expectedOnContext: ["user.id"],
             operator: PolicyOperator.match,
         };
         const conditionTwo: PolicyCondition = {
             field: "request.user.ip",
-            expectedOnContext: "user.knownIp",
+            expectedOnContext: ["user.knownIp"],
             operator: PolicyOperator.match,
         };
 
@@ -193,12 +193,12 @@ test("Performance of multiple policies with multiple conditions on request objec
 
     const condition: PolicyCondition = {
         field: "request.user.id",
-        expectedOnContext: "user.id",
+        expectedOnContext: ["user.id"],
         operator: PolicyOperator.match,
     };
     const conditionTwo: PolicyCondition = {
         field: "request.user.ip",
-        expectedOnContext: "user.knownIp",
+        expectedOnContext: ["user.knownIp"],
         operator: PolicyOperator.match,
     };
 
@@ -266,12 +266,12 @@ test("Performance of multiple policies with multiple conditions on request objec
 
         const condition: PolicyCondition = {
             field: "request.user.id",
-            expectedOnContext: "user.id",
+            expectedOnContext: ["user.id"],
             operator: PolicyOperator.match,
         };
         const conditionTwo: PolicyCondition = {
             field: "request.user.ip",
-            expectedOnContext: "user.knownIp",
+            expectedOnContext: ["user.knownIp"],
             operator: PolicyOperator.match,
         };
 
@@ -294,12 +294,12 @@ test("Performance of multiple policies with multiple conditions on request objec
 
     const condition: PolicyCondition = {
         field: "request.user.id",
-        expectedOnContext: "user.id",
+        expectedOnContext: ["user.id"],
         operator: PolicyOperator.match,
     };
     const conditionTwo: PolicyCondition = {
         field: "request.user.ip",
-        expectedOnContext: "user.knownIp",
+        expectedOnContext: ["user.knownIp"],
         operator: PolicyOperator.match,
     };
 

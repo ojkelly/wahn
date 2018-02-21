@@ -31,9 +31,10 @@ test("Evaluate a policy with condition of IP on request where IP is stored on Po
 
     const condition: PolicyCondition = {
         field: "request.ip",
-        expected: allowedIp,
+        expected: [allowedIp],
         operator: PolicyOperator.match,
     };
+
     // Assemble our policy
     const policy: Policy = {
         id: faker.random.uuid(),
@@ -83,7 +84,7 @@ test("Evaluate a policy with condition of IP on request where IP is stored on Po
 
     const condition: PolicyCondition = {
         field: "request.ip",
-        expected: allowedIp,
+        expected: [allowedIp],
         operator: PolicyOperator.match,
     };
 
@@ -135,6 +136,56 @@ test("Evaluate a policy with condition of IP on request where IP is stored on Po
     );
 });
 
+test("Evaluate a policy with numeric condition greater than stored on Policy (ALLOW)", async t => {
+    // Setup some initial values for this policy
+    const roles: string[] = [faker.name.jobTitle(), faker.name.jobTitle()];
+    const context: RequestContext = {
+        user: {
+            id: faker.random.uuid(),
+            roles: roles,
+        },
+        request: {
+            timeSinceMfa: 300,
+        },
+    };
+    const resource: string = `${faker.hacker.noun()}::${faker.hacker.noun()}`;
+    const action: string = faker.hacker.verb();
+
+    const condition: PolicyCondition = {
+        field: "request.timeSinceMfa",
+        operator: PolicyOperator.lessThan,
+        expected: [600],
+    };
+    // Assemble our policy
+    const policy: Policy = {
+        id: faker.random.uuid(),
+        resources: [resource],
+        actions: [action],
+        effect: PolicyEffect.Allow,
+        conditions: [condition],
+        roles: roles,
+    };
+
+    // Add in our logging callback
+    let logCallbackResult: LoggingCallbackLog | undefined = undefined;
+    const loggingCallback: LoggingCallback = (
+        log: LoggingCallbackLog,
+    ): void => {
+        logCallbackResult = log;
+    };
+
+    // Create a new wahn
+    const wahn: Wahn = new Wahn({
+        policies: [policy],
+        loggingCallback,
+    });
+
+    t.true(
+        wahn.evaluateAccess({ context, resource, action }),
+        "Failed to give access",
+    );
+});
+
 test("Evaluate a policy with condition of user id must match user id on request object (ALLOW)", async t => {
     // Setup some initial values for this policy
     const roles: string[] = [faker.name.jobTitle(), faker.name.jobTitle()];
@@ -155,7 +206,7 @@ test("Evaluate a policy with condition of user id must match user id on request 
 
     const condition: PolicyCondition = {
         field: "request.user.id",
-        expectedOnContext: "user.id",
+        expectedOnContext: ["user.id"],
         operator: PolicyOperator.match,
     };
     // Assemble our policy
@@ -203,12 +254,12 @@ test("Evaluate a policy with multiple conditions on request object (ALLOW)", asy
 
     const condition: PolicyCondition = {
         field: "request.user.id",
-        expectedOnContext: "user.id",
+        expectedOnContext: ["user.id"],
         operator: PolicyOperator.match,
     };
     const conditionTwo: PolicyCondition = {
         field: "request.user.ip",
-        expectedOnContext: "user.knownIp",
+        expectedOnContext: ["user.knownIp"],
         operator: PolicyOperator.match,
     };
     // Assemble our policy
@@ -256,12 +307,12 @@ test("Evaluate a policy with multiple conditions on request object (DENY) fail o
 
     const condition: PolicyCondition = {
         field: "request.user.id",
-        expectedOnContext: "user.id",
+        expectedOnContext: ["user.id"],
         operator: PolicyOperator.match,
     };
     const conditionTwo: PolicyCondition = {
         field: "request.user.ip",
-        expectedOnContext: "user.knownIp",
+        expectedOnContext: ["user.knownIp"],
         operator: PolicyOperator.match,
     };
     // Assemble our policy
@@ -333,12 +384,12 @@ test("Evaluate a policy with multiple conditions on request object (DENY) fail o
 
     const condition: PolicyCondition = {
         field: "request.user.id",
-        expectedOnContext: "user.id",
+        expectedOnContext: ["user.id"],
         operator: PolicyOperator.match,
     };
     const conditionTwo: PolicyCondition = {
         field: "request.user.ip",
-        expectedOnContext: "user.knownIp",
+        expectedOnContext: ["user.knownIp"],
         operator: PolicyOperator.match,
     };
     // Assemble our policy

@@ -1,13 +1,13 @@
 # Wahn
 
+_Policy Machine for Role Based Access Control_
+
 [![View on npm](https://img.shields.io/npm/v/wahn.svg)](https://npmjs.org/packages/wahn)
 [![npm downloads](https://img.shields.io/npm/dm/wahn.svg)](https://npmjs.org/packages/wahn)
 [![Dependencies](https://img.shields.io/david/ojkelly/wahn.svg)](https://david-dm.org/ojkelly/wahn)
 [![Build Status](https://travis-ci.org/ojkelly/wahn.svg?branch=master)](https://travis-ci.org/ojkelly/wahn)
 [![codecov](https://codecov.io/gh/ojkelly/wahn/branch/master/graph/badge.svg)](https://codecov.io/gh/ojkelly/wahn)
 [![NSP Status](https://nodesecurity.io/orgs/ojkelly/projects/62f4946c-226b-4338-a092-8a878eb686c7/badge)](https://nodesecurity.io/orgs/ojkelly/projects/62f4946c-226b-4338-a092-8a878eb686c7)[![Known Vulnerabilities](https://snyk.io/test/npm/wahn/badge.svg)](https://snyk.io/test/npm/wahn)
-
-**Policy Machine for Role Based Access Control**
 
 Designed for use with the [Bunjil](https://github.com/ojkelly/bunjil) GraphQL server, Wahn is flexible policy based authorization engine. It is inpsired by other policy engines including AWS IAM.
 
@@ -148,7 +148,7 @@ You can view the `Policy` type detailed type information, below is the plain JSO
         // A dot path to the value on the context object
         field: "${user.id}",
         operator: "match", // or "notMatch"
-        value: "user.id",
+        expected: ["user.id"],
 
       }
     ],

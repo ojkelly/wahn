@@ -23,6 +23,14 @@ function get<obj>(obj: obj, path): any {
     return path.split(".").reduce((obj = {}, key) => obj[key], obj);
 }
 
+function reduceToBoolean(accumulator: boolean, currentOutcome: boolean) {
+    // Any true value, makes this condition true
+    if (accumulator === true) {
+        return true;
+    } else {
+        return currentOutcome;
+    }
+}
 /**
  * Make a decision about access for a request
  *
@@ -230,65 +238,36 @@ function evaluateCondition({
     try {
         let outcome: boolean = false;
 
-        if (typeof condition.expected !== "undefined") {
-            if (typeof condition.expected === "string") {
-                outcome = matchSingleValue({
-                    condition,
-                    resource,
-                    context,
-                    matchExpected: true,
-                    matchExpectedOnContext: false,
-                });
-            } else if (Array.isArray(condition.expected)) {
-                outcome = condition.expected
-                    .map((expected: string) =>
-                        matchSingleValue({
-                            condition,
-                            resource,
-                            context,
-                            matchExpected: true,
-                            matchExpectedOnContext: false,
-                        }),
-                    )
-                    .reduce((accumulator: boolean, currentOutcome: boolean) => {
-                        // Any true value, makes this condition true
-                        if (accumulator === true) {
-                            return true;
-                        } else {
-                            return currentOutcome;
-                        }
-                    });
-            }
-        } else if (typeof condition.expectedOnContext !== "undefined") {
-            if (typeof condition.expectedOnContext === "undefined") {
-            } else if (typeof condition.expectedOnContext === "string") {
-                outcome = matchSingleValue({
-                    condition,
-                    resource,
-                    context,
-                    matchExpected: false,
-                    matchExpectedOnContext: true,
-                });
-            } else if (Array.isArray(condition.expectedOnContext)) {
-                outcome = condition.expectedOnContext
-                    .map((expected: string) =>
-                        matchSingleValue({
-                            condition,
-                            resource,
-                            context,
-                            matchExpected: false,
-                            matchExpectedOnContext: true,
-                        }),
-                    )
-                    .reduce((accumulator: boolean, currentOutcome: boolean) => {
-                        // Any true value, makes this condition true
-                        if (accumulator === true) {
-                            return true;
-                        } else {
-                            return currentOutcome;
-                        }
-                    });
-            }
+        if (
+            typeof condition.expected !== "undefined" &&
+            Array.isArray(condition.expected)
+        ) {
+            outcome = condition.expected
+                .map(() =>
+                    matchSingleValue({
+                        condition,
+                        resource,
+                        context,
+                        expected: true,
+                        expectedOnContext: false,
+                    }),
+                )
+                .reduce(reduceToBoolean);
+        } else if (
+            typeof condition.expectedOnContext !== "undefined" &&
+            Array.isArray(condition.expectedOnContext)
+        ) {
+            outcome = condition.expectedOnContext
+                .map(() =>
+                    matchSingleValue({
+                        condition,
+                        resource,
+                        context,
+                        expected: false,
+                        expectedOnContext: true,
+                    }),
+                )
+                .reduce(reduceToBoolean);
         }
         return outcome;
     } catch (err) {
@@ -304,43 +283,77 @@ function matchSingleValue({
     condition,
     resource,
     context,
-    matchExpected,
-    matchExpectedOnContext,
+    expected,
+    expectedOnContext,
 }: {
     condition: PolicyCondition;
     resource: string;
     context: RequestContext;
-    matchExpected: boolean;
-    matchExpectedOnContext: boolean;
-}): boolean {
+    expected: boolean;
+    expectedOnContext: boolean;
+}): any {
     try {
+        // Always default to false
         let outcome: boolean = false;
-        // console.log("matchSingleValue", {
-        //     condition,
-        //     context,
-        //     matchExpected,
-        //     matchExpectedOnContext,
-        //     resource,
-        //     fieldPath: condition.field,
-        //     field: get(context, condition.field),
-        // });
+        // Defensively setup some variables
         let matchResult: boolean | undefined = undefined;
+        let numericResult:
+            | PolicyOperator.lessThan
+            | PolicyOperator.greaterThan
+            | undefined = undefined;
 
-        if (matchExpected === true) {
-            matchResult = mm.isMatch(
-                get(context, condition.field),
-                `${condition.expected}`,
-            );
-        } else if (matchExpectedOnContext === true) {
-            matchResult = mm.isMatch(
-                get(context, condition.field),
-                get(context, condition.expectedOnContext),
-            );
-        } else {
-            // Invalid condition, skip it
-            log("Invalid condition, skip it");
+        // First process the comparison
+        if (
+            // String Conditions
+            condition.operator === PolicyOperator.match ||
+            condition.operator === PolicyOperator.notMatch
+        ) {
+            if (expected === true && Array.isArray(condition.expected)) {
+                matchResult = condition.expected
+                    .map((val: string | number) =>
+                        mm.isMatch(get(context, condition.field), `${val}`),
+                    )
+                    .reduce(reduceToBoolean);
+            } else if (
+                expectedOnContext === true &&
+                Array.isArray(condition.expectedOnContext)
+            ) {
+                matchResult = condition.expectedOnContext
+                    .map((val: string) =>
+                        mm.any(
+                            get(context, condition.field),
+                            get(context, val),
+                        ),
+                    )
+                    .reduce(reduceToBoolean);
+            } else {
+                // Invalid condition, skip it
+                log("Invalid condition, skip it");
+            }
+        } else if (
+            // Numeric conditions
+            condition.operator === PolicyOperator.lessThan ||
+            condition.operator === PolicyOperator.greaterThan
+        ) {
+            const field: number = get(context, condition.field);
+            let expectedValue: number | undefined = undefined;
+
+            if (expected === true) {
+                expectedValue = Number(condition.expected);
+            } else if (expectedOnContext === true) {
+                expectedValue = get(context, condition.expectedOnContext);
+            } else {
+                // Invalid condition, skip it
+                log("Invalid condition, skip it");
+            }
+            if (field > Number(condition.expected)) {
+                numericResult = PolicyOperator.greaterThan;
+            } else if (field < Number(condition.expected)) {
+                numericResult = PolicyOperator.lessThan;
+            }
         }
 
+        // Now check if the comparision matches to what we were expecting
         switch (condition.operator) {
             case PolicyOperator.match:
                 if (matchResult === true) {
@@ -353,8 +366,13 @@ function matchSingleValue({
                 }
                 break;
             case PolicyOperator.lessThan:
+                if (numericResult === PolicyOperator.lessThan) {
+                    outcome = true;
+                }
             case PolicyOperator.greaterThan:
-                throw new Error("Condition greaterThan not implemented yet.");
+                if (numericResult === PolicyOperator.greaterThan) {
+                    outcome = true;
+                }
         }
         return outcome;
     } catch (err) {
