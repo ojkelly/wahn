@@ -1,8 +1,8 @@
 {
   "name": "wahn",
-  "version": "0.9.8",
+  "version": "0.9.9",
   "description": "Policy Machine for Role Based Access Control",
-  "main": "./lib/src/index.ts",
+  "main": "./lib/src/index.js",
   "scripts": {
     "info": "npm-scripts-info",
     "dev": "ava-ts ./tests/*.spec.ts --watch",
