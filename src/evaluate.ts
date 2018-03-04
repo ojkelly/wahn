@@ -65,8 +65,15 @@ function evaluateAccess({
                 "No policies matched the request.",
             );
         }
-
-        policies.forEach((policy: Policy) => {
+        debug(
+            `Matched policies for: ${JSON.stringify({
+                resource,
+                action,
+                context,
+                matchedPolicies,
+            })}`,
+        );
+        matchedPolicies.forEach((policy: Policy) => {
             // 4. Is there an explict `deny` for the `action`
             if (policy.effect === PolicyEffect.Deny) {
                 // a. If`yes`then`outcome=deny`and exit evaluation b. If`no` then continue.
@@ -157,7 +164,14 @@ function matchPolicies({
                 // If the policy has no conditions, then it matches
                 policyConditionCheck = true;
             }
-
+            debug(
+                JSON.stringify({
+                    policy,
+                    policyResourceCheck,
+                    policyActionCheck,
+                    policyConditionCheck,
+                }),
+            );
             // If all checks passed this policy is has matched
             if (
                 policyResourceCheck &&

@@ -107,3 +107,45 @@ test("Evaluate request which should be denied", async t => {
         "Failed to prevent access",
     );
 });
+
+test.only("Evaluate policy with broad Allow permissions are a single denied permission", async t => {
+    const roles: string[] = [faker.name.jobTitle()];
+    const context: RequestContext = {
+        user: {
+            id: faker.random.uuid(),
+            roles: roles,
+        },
+    };
+
+    const resourceRoot: string = `${faker.hacker.noun()}`;
+    const resource: string = `${resourceRoot}::${faker.hacker.noun()}`;
+    const action: string = faker.hacker.verb();
+
+    const policies: Policy[] = [
+        {
+            id: faker.random.uuid(),
+            resources: [`${resourceRoot}::*`],
+            actions: [action],
+            effect: PolicyEffect.Allow,
+            roles: roles,
+        },
+        {
+            id: faker.random.uuid(),
+            // Hard coded the resource suffix to be something that wont be generated
+            // by faker.hacker.noun
+            resources: [`${resourceRoot}::tree`],
+            actions: [action],
+            effect: PolicyEffect.Deny,
+            roles: roles,
+        },
+    ];
+
+    const wahn: Wahn = new Wahn({
+        policies,
+    });
+
+    t.true(
+        wahn.evaluateAccess({ context, resource, action }),
+        "Failed to give access",
+    );
+});
