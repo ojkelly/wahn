@@ -8,6 +8,7 @@ _Policy Machine for Role Based Access Control_
 [![Build Status](https://travis-ci.org/ojkelly/wahn.svg?branch=master)](https://travis-ci.org/ojkelly/wahn)
 [![codecov](https://codecov.io/gh/ojkelly/wahn/branch/master/graph/badge.svg)](https://codecov.io/gh/ojkelly/wahn)
 [![NSP Status](https://nodesecurity.io/orgs/ojkelly/projects/62f4946c-226b-4338-a092-8a878eb686c7/badge)](https://nodesecurity.io/orgs/ojkelly/projects/62f4946c-226b-4338-a092-8a878eb686c7)[![Known Vulnerabilities](https://snyk.io/test/npm/wahn/badge.svg)](https://snyk.io/test/npm/wahn)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fojkelly%2Fwahn.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fojkelly%2Fwahn?ref=badge_shield)
 
 Designed for use with the [Bunjil](https://github.com/ojkelly/bunjil) GraphQL server, Wahn is flexible policy based authorization engine. It is inpsired by other policy engines including AWS IAM.
 
@@ -215,6 +216,9 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](https://github.com/ojkelly/wahn/LICENSE.md) file for details
+
+
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fojkelly%2Fwahn.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fojkelly%2Fwahn?ref=badge_large)
 
 ## Acknowledgments
 
