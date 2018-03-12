@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.10.0"></a>
+# [0.10.0](https://github.com/ojkelly/wahn/compare/v0.9.11...v0.10.0) (2018-03-12)
+
+
+
 <a name="0.9.11"></a>
 ## [0.9.11](https://github.com/ojkelly/wahn/compare/v0.9.10...v0.9.11) (2018-03-04)
 
