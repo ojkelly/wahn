@@ -1,7 +1,7 @@
 import * as mm from "micromatch";
 import * as debug from "debug";
 
-import { AuthorizationError, EvaluationDeniedError } from "./errors";
+import { AuthorizationDeniedError } from "./errors";
 import { evaluateAccess, matchPolicies } from "./evaluate";
 
 const info: debug.IDebugger = debug("wahn:info");
@@ -69,15 +69,16 @@ class Wahn {
             });
 
             return outcome;
-        } catch (EvaluationDeniedError) {
+        } catch (AuthorizationDeniedError) {
             this.evaluationFailCallback({
-                policyId: EvaluationDeniedError.policyId,
+                policy: AuthorizationDeniedError.policy,
                 context,
                 action,
                 resource,
-                reason: EvaluationDeniedError.reason,
+                reason: AuthorizationDeniedError.reason,
             });
-            return false;
+            // Throw all denied errors
+            throw AuthorizationDeniedError;
         }
     }
 
@@ -90,12 +91,12 @@ class Wahn {
         action,
         reason,
         resource,
-        policyId,
+        policy,
     }: WahnEvaluationFailedOptions): void {
-        info("evaluationFailCallback", { policyId, context, action, reason });
+        info("evaluationFailCallback", { policy, context, action, reason });
         if (typeof this.loggingCallback === "function") {
             this.loggingCallback({
-                policyId,
+                policy,
                 context,
                 action,
                 reason,
@@ -118,7 +119,7 @@ type WahnEvaluationOptions = {
     resource: string;
 };
 type WahnEvaluationFailedOptions = {
-    policyId: string;
+    policy: Policy;
     context: RequestContext;
     resource: string;
     action: string;
@@ -172,6 +173,8 @@ type Policy = {
     // id must be unqiue
     id: string;
     effect: PolicyEffect;
+    // Optional denyType to be thown
+    denyType?: string;
     // Multiple conditions are evaluated as AND (ie all conditions must be true)
     conditions?: PolicyCondition[];
     // Roles can have a glob
@@ -183,7 +186,7 @@ interface LoggingCallback {
 }
 
 type LoggingCallbackLog = {
-    policyId: string;
+    policy?: Policy | null;
     context: RequestContext;
     action: string;
     reason: string;
@@ -206,4 +209,5 @@ export {
     ContextUser,
     WahnConstructorOptions,
     WahnEvaluationOptions,
+    AuthorizationDeniedError,
 };

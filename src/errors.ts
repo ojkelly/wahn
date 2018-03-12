@@ -1,3 +1,5 @@
+import { Policy } from "./index";
+
 // [ Errors ]---------------------------------------------------------------------------------------
 
 class ExtendableError extends Error {
@@ -8,15 +10,16 @@ class ExtendableError extends Error {
     }
 }
 
-class AuthorizationError extends ExtendableError {}
-class EvaluationDeniedError extends ExtendableError {
+class AuthorizationDeniedError extends ExtendableError {
     public name: string = "EvaluationDenied";
-    constructor(public policyId: string, public reason: string) {
+    public denyType: string = "Deny";
+
+    constructor(public policy: Policy | null, public reason: string) {
         super(reason);
-        this.policyId = policyId;
+        this.policy = policy;
         this.reason = reason;
-        this.stack = new Error().stack;
+        this.denyType = policy && policy.denyType ? policy.denyType : "Deny";
     }
 }
 
-export { AuthorizationError, EvaluationDeniedError, ExtendableError };
+export { AuthorizationDeniedError, ExtendableError };

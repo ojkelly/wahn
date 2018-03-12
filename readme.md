@@ -89,7 +89,7 @@ const hasAccess: boolean = wahn.evaluateAccess({
     context,
     resource: "AResourceTheUserCannotAccess",
 });
-// hasAccess === false
+// throws AuthorizationDeniedError
 ```
 
 ```javascript
@@ -120,7 +120,7 @@ const hasAccess = wahn.evaluateAccess({
     context,
     resource: "AResourceTheUserCannotAccess",
 });
-// hasAccess === false
+// throws AuthorizationDeniedError
 ```
 
 ### Policy Object
@@ -183,6 +183,33 @@ When you define a `Condition` there are 3 parameters:
 * `expectedOnContext`: a dot path to the expected value on your `context` object.
   value on the context object
 * `operator`: `match`, `notMatch`, `lessThan`, `greaterThan`
+
+### DenyType
+
+You can now add a `denyType` string to your deny policy to provide information to your client,
+about how to resolve the deny.
+
+The following simple example shows a policy denying with a `denyType` of `mfa-required` which
+can instruct the client to prompt for a MFA token.
+
+```typescript
+// Assemble our policy
+const policy: Policy = {
+    id: "uuid",
+    resources: ["resource"],
+    actions: ["action"],
+    effect: PolicyEffect.Deny,
+    denyType: "mfa-required",
+    conditions: [
+        {
+            field: "user.sessionAge",
+            operator: PolicyOperator.greaterThan,
+            expected: [600],
+        },
+    ],
+    roles: ["authenticated user"],
+};
+```
 
 ## Running the tests
 

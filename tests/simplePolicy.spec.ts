@@ -9,6 +9,7 @@ import {
     PolicyOperator,
     LoggingCallback,
     LoggingCallbackLog,
+    AuthorizationDeniedError,
 } from "../src/index";
 
 // [ Simple Policy ]--------------------------------------------------------------------------------
@@ -98,17 +99,18 @@ test("Evaluate request which should be denied", async t => {
         policies: [policy],
     });
 
-    t.false(
-        wahn.evaluateAccess({
-            context,
-            action,
-            resource: faker.random.uuid(),
-        }),
-        "Failed to prevent access",
+    t.throws(
+        () =>
+            wahn.evaluateAccess({
+                context,
+                action,
+                resource: faker.random.uuid(),
+            }),
+        AuthorizationDeniedError,
     );
 });
 
-test.only("Evaluate policy with broad Allow permissions are a single denied permission", async t => {
+test("Evaluate policy with broad Allow permissions are a single denied permission", async t => {
     const roles: string[] = [faker.name.jobTitle()];
     const context: RequestContext = {
         user: {

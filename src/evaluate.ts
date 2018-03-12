@@ -10,7 +10,7 @@ import {
     RequestContext,
 } from "./index";
 
-import { AuthorizationError, EvaluationDeniedError } from "./errors";
+import { AuthorizationDeniedError } from "./errors";
 
 const info: debug.IDebugger = debug("wahn:info");
 const log: debug.IDebugger = debug("wahn:log");
@@ -60,8 +60,8 @@ function evaluateAccess({
             typeof matchedPolicies.length === "undefined" ||
             matchedPolicies.length === 0
         ) {
-            throw new EvaluationDeniedError(
-                "",
+            throw new AuthorizationDeniedError(
+                null,
                 "No policies matched the request.",
             );
         }
@@ -77,8 +77,8 @@ function evaluateAccess({
             // 4. Is there an explict `deny` for the `action`
             if (policy.effect === PolicyEffect.Deny) {
                 // a. If`yes`then`outcome=deny`and exit evaluation b. If`no` then continue.
-                throw new EvaluationDeniedError(
-                    policy.id,
+                throw new AuthorizationDeniedError(
+                    policy,
                     "Access has been explicty denied.",
                 );
             }
@@ -88,8 +88,8 @@ function evaluateAccess({
                 // a. If `yes` then `outcome=allow` and exit evaluation
                 outcome = true;
             } else {
-                throw new EvaluationDeniedError(
-                    policy.id,
+                throw new AuthorizationDeniedError(
+                    policy,
                     "Access has not been allowed.",
                 );
             }
@@ -99,7 +99,7 @@ function evaluateAccess({
         // 6. No `allow` found: `outcome=deny`
         return outcome;
     } catch (err) {
-        if (err instanceof EvaluationDeniedError || AuthorizationError) {
+        if (err instanceof AuthorizationDeniedError) {
         } else {
             console.log(err.message, err.stack);
         }
@@ -204,8 +204,8 @@ function evaluateAllConditions({
     try {
         let outcome: boolean = false;
         if (typeof policy.conditions === "undefined") {
-            throw new EvaluationDeniedError(
-                policy.id,
+            throw new AuthorizationDeniedError(
+                policy,
                 "Access has not been allowed.",
             );
         }
