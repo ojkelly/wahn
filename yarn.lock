@@ -4196,9 +4196,9 @@ verror@1.10.0:
     core-util-is "1.0.2"
     extsprintf "^1.2.0"
 
-wedgetail@0.9.2:
-  version "0.9.2"
-  resolved "https://registry.yarnpkg.com/wedgetail/-/wedgetail-0.9.2.tgz#d6ed2be8ea486779b529cbc58d15e960482a57ca"
+wedgetail@1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/wedgetail/-/wedgetail-1.0.0.tgz#4b74287810a4cd3543bd07cf5411516f5b21ee9b"
   dependencies:
     percentile "^1.2.0"
 
