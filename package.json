@@ -81,7 +81,7 @@
     "prettier": "1.11.1",
     "rimraf": "2.6.2",
     "standard-version": "4.3.0",
-    "ts-node": "4.1.0",
+    "ts-node": "5.0.1",
     "typedoc": "0.11.1",
     "typescript": "2.7.1",
     "wedgetail": "1.0.0"
