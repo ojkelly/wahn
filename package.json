@@ -84,7 +84,7 @@
     "ts-node": "4.1.0",
     "typedoc": "0.10.0",
     "typescript": "2.7.1",
-    "wedgetail": "0.9.2"
+    "wedgetail": "0.9.8"
   },
   "resolutions": {
     "micromatch": "3.1.5"
