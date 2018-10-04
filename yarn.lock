@@ -57,9 +57,9 @@
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/@types/braces/-/braces-2.3.0.tgz#d00ec0a76562b2acb6f29330be33a093e33ed25c"
 
-"@types/debug@0.0.30":
-  version "0.0.30"
-  resolved "https://registry.yarnpkg.com/@types/debug/-/debug-0.0.30.tgz#dc1e40f7af3b9c815013a7860e6252f6352a84df"
+"@types/debug@0.0.31":
+  version "0.0.31"
+  resolved "https://registry.yarnpkg.com/@types/debug/-/debug-0.0.31.tgz#bac8d8aab6a823e91deb7f79083b2a35fa638f33"
 
 "@types/events@*":
   version "1.1.0"
