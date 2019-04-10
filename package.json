@@ -62,7 +62,7 @@
   },
   "dependencies": {
     "debug": "^3.1.0",
-    "micromatch": "^3.1.5"
+    "micromatch": "^4.0.0"
   },
   "devDependencies": {
     "@types/debug": "0.0.30",
@@ -87,6 +87,6 @@
     "wedgetail": "1.0.0"
   },
   "resolutions": {
-    "micromatch": "3.1.5"
+    "micromatch": "^4.0.0"
   }
 }
