@@ -61,11 +61,11 @@
     }
   },
   "dependencies": {
-    "debug": "^3.1.0",
+    "debug": "^4.0.0",
     "micromatch": "^3.1.5"
   },
   "devDependencies": {
-    "@types/debug": "0.0.30",
+    "@types/debug": "4.1.4",
     "@types/faker": "4.1.2",
     "@types/micromatch": "3.1.0",
     "@types/prettier": "1.10.0",
