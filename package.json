@@ -73,7 +73,7 @@
     "ava-ts": "0.24.2",
     "codecov": "3.0.0",
     "faker": "4.1.0",
-    "husky": "0.14.3",
+    "husky": "2.4.1",
     "nanotimer": "0.3.15",
     "npm-scripts-info": "0.3.7",
     "nyc": "11.6.0",
